@@ -1,0 +1,108 @@
+# Ported from LagoLunatic's RARC parser for his gclib Python library, which is used in GCFT. 
+# As of now, this was only tested in a single dir, fully uncompressed RARC with my Yay0 script.
+debug 1
+endian big
+idstring "RARC"
+get size long
+get dataHeaderOffset long
+get dataListOffset long
+math dataListOffset - 0x20
+print "%dataListOffset%"
+get dataSize long
+get mramSize long
+get aramSize long
+get dvdSize long
+goto dataHeaderOffset
+get numNodes long
+get nodeListOffset long
+math nodeListOffset + dataHeaderOffset
+print "%nodeListOffset%"
+get numTotalFiles long
+get fileEntriesOffset long
+math fileEntriesOffset + dataHeaderOffset
+print "%fileEntriesOffset%"
+get stringTableSize long
+get stringTableOffset long
+math stringTableOffset + dataHeaderOffset
+print "%stringTableOffset%"
+get freeFileId short
+get syncId byte
+padding 5
+for i = 0 < numNodes
+    set curOffset nodeListOffset
+    set tempI i
+    math tempI * 0x10
+    math curOffset + tempI
+    goto curOffset
+    getdstring type 4
+    get nameOffset long
+    get nameHash short
+    get numFiles short
+    get firstFileIndex long
+    set curOffset2 stringTableOffset
+    math curOffset2 + nameOffset
+    goto curOffset2
+    get name string
+    putarray 0 -1 type
+    putarray 1 -1 nameOffset
+    putarray 2 -1 numFiles
+    putarray 3 -1 firstFileIndex
+    putarray 4 -1 name
+next i
+for i = 0 < numTotalFiles
+    set fileEntryOffset fileEntriesOffset
+    set tempI i
+    math tempI * 0x14
+    math fileEntryOffset + tempI
+    goto fileEntryOffset
+    get id short
+    get hash short
+    get typeAndNameOffset long
+    get dataOffsetOrNodeIndex long
+    get dataSize long
+    set type typeAndNameOffset
+    math type & 0xFF000000
+    math type >> 24
+    set nameOffset typeAndNameOffset
+    math nameOffset & 0x00FFFFFF
+    math nameOffset + stringTableOffset
+    goto nameOffset
+    get name string
+    set isdir 0
+    if type & 0x02 == 0
+        set isdir 1
+    endif
+    print "%isdir%"
+    if isdir == 1
+        set nodeIndex dataOffsetOrNodeIndex
+    else
+        set dataOffset dataOffsetOrNodeIndex
+        set absDataOffset dataListOffset
+        math absDataOffset + dataOffset
+        goto absDataOffset
+        getdstring data dataSize
+    endif
+    putarray 5 -1 fileEntryOffset
+    putarray 6 -1 id
+    putarray 7 -1 dataSize
+    putarray 8 -1 type
+    putarray 9 -1 name
+    putarray 10 -1 isdir
+    if isdir == 1
+        putarray 11 -1 nodeIndex
+    else
+        putarray 12 -1 data
+        putarray 13 -1 absDataOffset
+    endif
+next i
+getarray totalFiles 6 -0x80000000
+for i = 0 < totalFiles
+    getarray isADirectory 10 i
+    if isDirectory = 1
+        continue
+    endif
+    getarray fileNameToLog 9 i
+    getarray sizeToLog 7 i
+    getarray dataOffsetToLog 13 i
+    log fileNameToLog dataOffsetToLog sizeToLog
+next i

@@ -1,0 +1,9 @@
+# Mostly original script I cobbled together. The native algorithm is doing all the work.
+comtype yay0
+get zsize long
+get usize asize
+get base basename
+get ext extension
+
+string uncompFilename p= "%s_%s.%s" base ext "uncompressed"
+clog uncompFilename 0 usize zsize
