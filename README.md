@@ -1,5 +1,5 @@
 # What's this?
-Various scripts for Luigi Auriemma's amazing QuickBMS tool (official builds available [here](https://aluigi.altervista.org/quickbms.htm), unofficial fork [here](https://github.com/Canar/quickbms) requires building from source but fixes a few bugs that prevented you from compiling the tool in modern hardware.) I made and/or ported from someone else's standalone tool (always check the code to see the credits).
+Various scripts for Luigi Auriemma's amazing QuickBMS tool (official builds available [here](https://aluigi.altervista.org/quickbms.htm), unofficial fork [here](https://github.com/Canar/quickbms) requires building from source but fixes a few bugs that prevented you from compiling the tool in modern hardware) I made and/or ported from someone else's standalone tool (always check the code to see the credits).
 # My setup
 Linux Mint with VSCodium. ClaudeAI, ChatGPT and DeepWiki occassionally used.
 # Why not Total Commander or derivatives?
