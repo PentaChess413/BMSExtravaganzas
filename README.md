@@ -5,7 +5,7 @@ Linux Mint with VSCodium. ClaudeAI, ChatGPT and DeepWiki occassionally used.
 # Why not Total Commander or derivatives?
 Because I'm nowhere near knowledgeable enough of the API to try that. Still, a little known fact is that QuickBMS actually supports WCX plugins, so if you are one of the people who develop those, you now know that.
 # License
-The scripts should eventually be sorted in folders by license. As a general rule, if one was posted unlicensed, I'll put it under unclear license pending further clarification.   
+ As a general rule, if one was posted unlicensed, I'll put it under unclear license pending further clarification.   
 The default license will be the GNU GPL v3.0, because proprietary mod tools is not something me or most programmers like dealing with (Linux problems, slower progress, lost knowledge...)
 # Credits
 LagoLunatic's [gclib](https://github.com/LagoLunatic/gclib) for its RARC decoding logic.  
