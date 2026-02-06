@@ -1,5 +1,6 @@
 # Ported from LagoLunatic's RARC parser for his gclib Python library, which is used in GCFT. 
 # As of now, this was only tested in a single dir, fully uncompressed RARC with my Yay0 script.
+# It should theoretically work with directories, but I haven't tested that just yet.
 debug 1
 endian big
 idstring "RARC"
