@@ -7,7 +7,6 @@ get size long
 get dataHeaderOffset long
 get dataListOffset long
 math dataListOffset - 0x20
-print "%dataListOffset%"
 get dataSize long
 get mramSize long
 get aramSize long
@@ -16,17 +15,30 @@ goto dataHeaderOffset
 get numNodes long
 get nodeListOffset long
 math nodeListOffset + dataHeaderOffset
-print "%nodeListOffset%"
 get numTotalFiles long
 get fileEntriesOffset long
 math fileEntriesOffset + dataHeaderOffset
-print "%fileEntriesOffset%"
 get stringTableSize long
 get stringTableOffset long
 math stringTableOffset + dataHeaderOffset
-print "%stringTableOffset%"
 get freeFileId short
 get syncId byte
+startfunction extract idx
+    print "%extract_arg1%"
+    getarray isADirectory 10 extract_arg1
+    if isADirectory = 1
+        getarray dirName 9 extract_arg1
+        if dirName != "." || dirName != ".."
+            string subdirPath p "/%d" dirName
+            getarray indexOfNode 11 extract_arg1
+            callfunction extract extract_arg1
+        endif
+    endif
+    getarray fileNameToLog 9 extract_arg1
+    getarray sizeToLog 7 extract_arg1
+    getarray dataOffsetToLog 13 extract_arg1
+    log fileNameToLog dataOffsetToLog extract_arg1
+endfunction
 padding 5
 for i = 0 < numNodes
     set curOffset nodeListOffset
@@ -72,7 +84,6 @@ for i = 0 < numTotalFiles
     if type & 0x02 == 0
         set isdir 1
     endif
-    print "%isdir%"
     if isdir == 1
         set nodeIndex dataOffsetOrNodeIndex
     else
@@ -96,13 +107,8 @@ for i = 0 < numTotalFiles
     endif
 next i
 getarray totalFiles 6 -0x80000000
+print "%totalFiles%"
 for i = 0 < totalFiles
-    getarray isADirectory 10 i
-    if isDirectory = 1
-        continue
-    endif
-    getarray fileNameToLog 9 i
-    getarray sizeToLog 7 i
-    getarray dataOffsetToLog 13 i
-    log fileNameToLog dataOffsetToLog sizeToLog
+    print "%i%"
+    callfunction extract 0 i
 next i
