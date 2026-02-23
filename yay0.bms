@@ -1,9 +1,93 @@
-# Mostly original script I cobbled together. The native algorithm is doing all the work.
-comtype yay0
-get zsize long
-get usize asize
-get base basename
-get ext extension
+# Ported from QuickBMS's native source code. Slower, but *seems* like it supports reimporting as opposed to my earlier script that just wraps around the native decompressor.
+quickbmsver "-."
+debug 1
+endian big  
+idstring "Yay0"  
+get uncompSize long  
+get linkOffset long  
+get chunkOffset long  
+  
+set maskOffset 0x10  
+set outLen 0  
+set maskBitsLeft 0  
+set mask 0  
+  
+log MEMORY_FILE 0 0  
+putvarchr MEMORY_FILE uncompSize 0  
+log MEMORY_FILE 0 0  
+  
+do  
+    if maskBitsLeft == 0  
+        if maskOffset >= filesize  
+            print "Error: Mask offset beyond file size"  
+            break  
+        endif  
+        goto maskOffset  
+        get mask byte  
+        math maskOffset + 1  
+        set maskBitsLeft 8  
+    endif  
+      
+    if mask & 0x80  
+        if chunkOffset >= filesize  
+            print "Error: Chunk offset beyond file size"  
+            break  
+        endif  
+        goto chunkOffset  
+        get outByte byte  
+        putvarchr MEMORY_FILE outLen outByte  
+        math chunkOffset + 1  
+        math outLen + 1  
+    else  
+        if linkOffset >= filesize  
+            print "Error: Link offset beyond file size"  
+            break  
+        endif  
+        goto linkOffset  
+        get byte1 byte  
+        get byte2 byte  
+        math linkOffset + 2  
+          
+        math dist = byte1  
+        math dist & 0x0F  
+        math dist << 8  
+        math dist + byte2  
+        set copySrcOffset = outLen  
+        math copySrcOffset - dist  
+        math copySrcOffset - 1  
+          
+        math numBytes = byte1  
+        math numBytes >> 4  
+        if numBytes == 0  
+            if chunkOffset >= filesize  
+                print "Error: Chunk offset beyond file size when reading numBytes"  
+                break  
+            endif  
+            goto chunkOffset  
+            get extra byte  
+            math chunkOffset + 1  
+            math numBytes = extra  
+            math numBytes + 0x12  
+        else  
+            math numBytes + 2  
+        endif  
+          
+        for i = 0 < numBytes  
+            if copySrcOffset < 0  
+                print "Error: Negative copy source offset"  
+                break  
+            endif  
+            getvarchr dataToCopy MEMORY_FILE copySrcOffset  
+            putvarchr MEMORY_FILE outLen dataToCopy  
+            math outLen + 1  
+            math copySrcOffset + 1  
+        next i  
+    endif  
+      
+    math mask << 1  
+    math maskBitsLeft - 1  
+while outLen < uncompSize  
 
-string uncompFilename p= "%s_%s.%s" base ext "uncompressed"
-clog uncompFilename 0 usize zsize
+get compFileName filename
+string nameToLog p="%s.uncompressed" compFileName
+log nameToLog 0 uncompSize MEMORY_FILE

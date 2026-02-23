@@ -1,0 +1,138 @@
+endian big
+debug 1
+startfunction readDir
+    print "This is a test! %readDir_arg1%"
+    getarray idx 0 readDir_arg1
+    math idx + 1
+    getarray nextFstIndex 4 readDir_arg1
+    do
+        getarray fileIdx 0 idx
+        set parent readDir_arg1
+        getarray isDirectory 1 idx
+        if isDirectory == 1
+            getarray name 7 idx
+            string name p "%s/%s" readDir_arg2 name
+            callfunction readDir 0 idx name
+            getarray nextFile 4 idx
+            set idx nextFile
+        else
+            getarray data 5 idx
+            getarray size 6 idx
+            getarray name 7 idx
+            string name p "%s/%s" readDir_arg2 name
+            log name data size
+            math idx + 1
+        endif
+    while idx < nextFstIndex
+endfunction
+goto 0x424
+get fstOffset long
+get fstSize long
+set fileEntriesOffset fstOffset
+math fileEntriesOffset + 8
+goto fileEntriesOffset
+get numEntries long
+set fntOffset fstOffset
+xmath fntOffset "fntOffset + numEntries * 0xC"
+for i = 0 < numEntries
+    set fileEntryOffset fstOffset
+    set fileIndex i
+    putarray 0 -1 fileIndex
+    xmath fileEntryOffset "fileEntryOffset + fileIndex * 0xC"
+    # read(fileindex, selfisofile, fileentryoffset, fntoffset)
+    goto fileEntryOffset
+    get isDir byte
+    putarray 1 -1 isDir
+    get nameOffset threebyte
+    putarray 2 -1 nameOffset
+    get fileDataOffsetOrParentFstIndex long
+    get fileSizeOrNextFstIndex long
+    if isDir == 1
+        set parentFstIndex fileDataOffsetOrParentFstIndex
+        putarray 3 -1 parentFstIndex
+        set nextFstIndex fileSizeOrNextFstIndex
+        putarray 4 -1 fileSizeOrNextFstIndex
+        putarray 5 -1 0
+        putarray 6 -1 0
+    else
+        putarray 3 -1 0
+        putarray 4 -1 0
+        set fileDataOffset fileDataOffsetOrParentFstIndex
+        putarray 5 -1 fileDataOffset
+        set fileSize fileSizeOrNextFstIndex
+        putarray 6 -1 fileSize
+    endif
+    if fileIndex == 0
+        set name ""
+        putarray 7 -1 name
+    else
+        savepos curPos
+        set wheresTheName fntOffset
+        math wheresTheName + nameOffset
+        goto wheresTheName
+        get name string
+        if isDir == 1
+            string name p "%s" name
+        endif
+        goto curPos
+        putarray 7 -1 name
+    endif
+next i
+callfunction readDir 0 0 "files"
+log "sys/boot.bin" 0x0000 0x440
+log "sys/bi2.bin" 0x0440 0x2000
+goto 0x2440
+savepos apploaderStart
+math apploaderSizePos = apploaderStart
+math apploaderSizePos += 0x14
+goto apploaderSizePos
+get apploaderSize long
+math trailerSizePos = apploaderStart
+math trailerSizePos += 0x18
+goto trailerSizePos
+get trailerSize long
+set totalApploaderSize 32
+math totalApploaderSize + apploaderSize
+math totalApploaderSize + trailerSize
+goto apploaderStart
+log "sys/apploader.img" apploaderStart totalApploaderSize
+goto fstOffset
+log "sys/fst.bin" fstOffset fstSize
+goto 0x0420
+get bootfileOffset long
+goto bootfileOffset
+set bootfileSize 0
+for i = 0 < 7
+    set posModifier i
+    math posModifier * 4
+    set posToGo bootfileOffset
+    math posToGo + posModifier
+    get sectionOffset long
+    set sizePos bootfileOffset
+    math sizePos + 0x90
+    math sizePos + posModifier
+    get sectionSize long
+    set sectionEndOffset sectionOffset
+    math sectionEndOffset + sectionSize
+    if sectionEndOffset > bootfileSize
+        set bootfileSize sectionEndOffset
+    endif
+next i
+for i = 0 < 11
+    set posModifier i
+    math posModifier * 4
+    set posToGo bootfileOffset
+    xmath posToGo + posModifier + 0x1C
+    get sectionOffset long
+    set sizePos bootfileOffset
+    math sizePos + 0xAC
+    math sizePos + posModifier
+    get sectionSize long
+    set sectionEndOffset sectionOffset
+    math sectionEndOffset + sectionSize
+    if sectionEndOffset > bootfileSize
+        set bootfileSize sectionEndOffset
+    endif
+next i
+print "%bootfileSize%"
+log "sys/main.dol" bootfileOffset bootfileSize
