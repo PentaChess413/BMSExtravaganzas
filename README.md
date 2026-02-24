@@ -8,7 +8,7 @@ Because I'm nowhere near knowledgeable enough of the API to try that. Still, a l
  As a general rule, if one was posted unlicensed, I'll put it under unclear license pending further clarification.   
 The default license will be the GNU GPL v3.0, because proprietary mod tools is not something me or most programmers like dealing with (Linux problems, slower progress, lost knowledge...)
 # Credits
-LagoLunatic's [gclib](https://github.com/LagoLunatic/gclib) for its RARC decoding logic.  
+LagoLunatic's [gclib](https://github.com/LagoLunatic/gclib) for its RARC and GameCube ISO decoding logic.  
 Ethan "ethteck" Roseman's [Yay0 decompressor](https://github.com/ethteck/n64decompress) for it helping me understand Yay0.  
 Luigi Auriemma and everyone of his collaborators at XenTAX, ZenHax and everywhere else, for making such an amazing tool.  
 Canar, for maintaining the unofficial fork that actually builds.
